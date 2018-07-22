@@ -1,17 +1,18 @@
-# Set the base image to use to Ubuntu
 FROM ubuntu:14.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN sed -i -re 's/([a-z]{2}\.)?archive.ubuntu.com|security.ubuntu.com/mirror.yandex.ru/g' /etc/apt/sources.list
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install wget python-minimal python-setuptools python-m2crypto python-apsw libpython2.7 -y && \
+    apt-get clean
 
-RUN apt-get update && apt-get upgrade -y && apt-get install python-minimal python-setuptools -y && apt-get clean
+WORKDIR /tmp
 
-RUN echo 'deb http://repo.acestream.org/ubuntu/ trusty main' | sudo tee /etc/apt/sources.list.d/acestream.list && \
-    python -c "import urllib; print urllib.urlopen('http://repo.acestream.org/keys/acestream.public.key').read()" | apt-key add -
-
-RUN apt-get update && apt-get install -y acestream-engine && apt-get clean
+RUN wget "http://dl.acestream.org/linux/acestream_3.1.16_ubuntu_14.04_x86_64.tar.gz"
+RUN tar zxvf acestream_3.1.16_ubuntu_14.04_x86_64.tar.gz
+RUN mv acestream_3.1.16_ubuntu_14.04_x86_64 /opt/acestream
 
 EXPOSE 62062 6878 8621
 
-ENTRYPOINT ["/usr/bin/acestreamengine"]
+ENTRYPOINT ["/opt/acestream/start-engine", "--client-console"]
